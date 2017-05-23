@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="img/favicon.png">
+		<title>HTTP Server</title>
+		<link rel="stylesheet" type="text/css" href="style/style.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	</head>
+	
+	<body>
+		<div class="header black-white">System Information
+			<div style="float: right">
+				<a style="font-size: 12px" href="/<!--#page-->">Home</a>&nbsp|
+				<div style="font-size: 12px; display: inline-block">System Information</div>&nbsp|
+				<a style="font-size: 12px" href="/setWiFi.ssi?showLinks=1">Setting</a>
+			</div>
+		</div>
+		<div class="main gray-white">
+			<div class="row light_gray-white">
+				<div class="grid gray-white" style="width: 30%">Version</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#version--></div>
+			</div>
+			<div class="row light_gray-white">
+				<div class="grid gray-white" style="width: 30%">Local SSID</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#lcSSID--></div>
+			</div>
+			<div class="row light_gray-white">
+				<div class="grid gray-white" style="width: 30%">SSID</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#apSSID--></div>
+			</div>
+			<div class="row light_gray-white">
+				<div class="grid gray-white" style="width: 30%">IP</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#ip--></div>
+			</div>
+			<div class="row light_gray-white">
+				<div class="grid gray-white" style="width: 30%">Netmask</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#netmask--></div>
+			</div>
+			<div class="row light_gray-white">
+				<div class="grid gray-white" style="width: 30%">Gateway</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#gateway--></div>
+			</div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="img/favicon.png">
+		<title>HTTP Server</title>
+		<link rel="stylesheet" type="text/css" href="style/style.css">
+		<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
+		<script src="script/jquery_3.1.1.min.js"></script>
+		<script src="script/common.js"></script>
+		<script language="javascript">
+			const MSG_SET_BRIGHTNESS		="MSG_SET_BRIGHTNESS";
+			const MSG_GET_BRIGHTNESS		="MSG_GET_BRIGHTNESS";
+			const MSG_SET_COLORTEMP			="MSG_SET_COLORTEMP";
+			const MSG_GET_COLORTEMP			="MSG_GET_COLORTEMP";
+			const MSG_KEEPALIVE				="MSG_KEEPALIVE";
+		
+			var g_webSocket=null;
+			var g_probeWD=null;
+		
+			function onWSMsgInit(evt) {
+				var arr=evt.data.split(",");
+				var msg=arr[0];
+				var arg=null;
+				
+				if(arr.length>1)
+					arg=arr[1].split(";");
+					
+				if(arg[0]>=0) {
+					arg.shift();
+					switch(msg) {			
+						case "MSG_GET_BRIGHTNESS_REPLY": {
+							var obj=$('#inpBri');
+							
+							obj.val(arg[0]);
+							syncBri();
+							break;
+						}
+
+						case "MSG_GET_COLORTEMP_REPLY": {
+							var obj=$('#inpCol');
+
+							obj.val(arg[0]);
+							syncCol();
+							break;
+						}
+
+						default:
+							console.log("Unsupported message received. '"+evt.data+"'");
+							break;
+					}
+				} else
+					console.log("Unqualified message received. '"+evt.data+"'");
+			}
+			
+			function onWSMsg(evt) {
+				var arr=evt.data.split(",");
+				var msg=arr[0];
+				var arg=null;
+				
+				if(arr.length>1)
+					arg=arr[1].split(";");
+					
+				if(arg[0]>=0) {
+					arg.shift();
+					switch(msg) {
+						case "MSG_SET_BRIGHTNESS_REPLY":
+						case "MSG_SET_COLORTEMP_REPLY": {
+							noFade();
+							break;
+						}
+						
+						case "MSG_KEEPALIVE_REPLY":
+							break;
+						
+						default:
+							console.log("Unsupported message received. '"+evt.data+"'");
+							break;
+					}
+				} else
+					console.log("Unqualified message received. '"+evt.data+"'");
+			}
+			
+			window.addEventListener("load", function () {
+				var init=new Init(onWSMsgInit, 2, function() {
+					g_webSocket.onmessage=onWSMsg;
+				
+					g_probeWD=setInterval(function() {
+						g_webSocket.send(MSG_KEEPALIVE);
+					}, 10000);
+					
+					noFade();
+				});
+				
+				g_webSocket=new WebSocket("ws://"+window.location.hostname+"/CmdSvr.ws");
+
+				g_webSocket.onopen=function(evt) {
+					g_webSocket.send(MSG_GET_BRIGHTNESS);
+					g_webSocket.send(MSG_GET_COLORTEMP);
+				};
+
+				g_webSocket.onclose=function(evt) {
+					console.log("onclose");
+				};
+
+				g_webSocket.onerror=function(evt) {
+					console.log("onerror");
+				};
+				
+				g_webSocket.onmessage=init.m_callback;
+			});
+
+			function syncBri() {
+				var obj0=$('#inpBri'),
+					obj1=$('#txtBri');
+					
+				obj1.html(obj0.val());
+			}
+			
+			function onBri() {
+				var obj=$('#inpBri');
+				
+				g_webSocket.send(MSG_SET_BRIGHTNESS+","+obj.val());
+				syncBri();
+				fade(5000);
+			}
+
+			function syncCol() {
+				var obj0=$('#inpCol'),
+					obj1=$('#txtCol');
+					
+				obj1.html(obj0.val());
+			}
+			
+			function onCol() {
+				var obj=$('#inpCol');
+				
+				g_webSocket.send(MSG_SET_COLORTEMP+","+obj.val());
+				syncCol();
+				fade(5000);
+			}
+		</script>
+	</head>
+	
+	<body>
+		<div class="header black-white">Home
+			<div style="float: right">
+				<div style="font-size: 12px; display: inline-block">Home</div>&nbsp|
+				<a style="font-size: 12px" href="/info.ssi">System Information</a>&nbsp|
+				<a style="font-size: 12px" href="/setWiFi.ssi?showLinks=1">Setting</a>
+			</div>
+		</div>
+		<div class="main gray-white">
+			<div class="row light_gray-white">
+				<div class="grid gray-white" style="width: 30%">Brightness</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right" id="txtBri">0</div>
+                <div class="grid gray-white" style="width: 100%; clear: left; margin-top: 5px">
+                	<input class="slider" style="width: 80%" id="inpBri" type="range" min="0" max="255" value="0" onchange="onBri()">
+                </div>
+			</div>
+			<div class="row light_gray-white">
+				<div class="grid gray-white" style="width: 30%">Color Temperature</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right" id="txtCol">127</div>
+                <div class="grid gray-white" style="width: 100%; clear: left; margin-top: 5px">
+                	<input class="slider" style="width: 80%" id="inpCol" type="range" min="0" max="255" value="127" onchange="onCol()">
+                </div>
+			</div>
+		</div>
+	</body>
+</html>
