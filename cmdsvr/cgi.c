@@ -56,22 +56,8 @@ static char *onCGI(int idx, int count, char *param[], char *value[]) {
 	if((val=readValue(count, param, value, "action"))) {
 		switch(atoi(val)) {
 			case 0: {
-				unsigned char stat=sdk_wifi_station_get_connect_status();
-			
-				if(stat==STATION_GOT_IP) {
-					ret="/wifiReady.ssi";
-					DBG("Ready. ret=%s\n", ret);
-				} else {
-					ret="/setWiFi.ssi";
-					DBG("Not ready. ret=%s\n", ret);
-				}
-				goto end;
-			}
-
-			case 1: {
 				InitParam init;
 				struct sdk_softap_config apCfg;
-				struct sdk_station_config staCfg;
 				spiffs_file fout;
 				
 				memset(&init, 0, sizeof(init));
@@ -104,23 +90,11 @@ static char *onCGI(int idx, int count, char *param[], char *value[]) {
 				} else
 					DBG("Failed to open initParam. (res=%d)\n", fout);
 
-				memset(&staCfg, 0, sizeof(staCfg));
-				sdk_wifi_station_get_config(&staCfg);
-				if((val=readValue(count, param, value, "apSSID")) && strlen(val))
-					strncpy((char *)staCfg.ssid, val, 32);
-				if((val=readValue(count, param, value, "apPass")) && strlen(val))
-					strncpy((char *)staCfg.password, val, 64);
-				else
-					memset(staCfg.password, 0, sizeof(staCfg.password));
-				sdk_wifi_station_set_config(&staCfg);
-
-				sdk_wifi_station_connect();
-				
-				ret="/check.html";
+				ret="/setWiFi.ssi";
 				goto end;
 			}
 			
-			case 2: {
+			case 1: {
 				sdk_ets_timer_setfn(&g_timer, onDeepSleep, NULL);
 				sdk_ets_timer_arm(&g_timer, 5000, false);
 

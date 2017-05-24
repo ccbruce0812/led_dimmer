@@ -6,13 +6,14 @@
 		<link rel="shortcut icon" href="img/favicon.png">
 		<title>HTTP Server</title>
 		<link rel="stylesheet" type="text/css" href="style/style.css">
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
+		<script src="script/jquery_3.1.1.min.js"></script>
 	</head>
 	
 	<body>
 		<div class="header black-white">System Information
 			<div style="float: right">
-				<a style="font-size: 12px" href="/<!--#page-->">Home</a>&nbsp|
+				<a style="font-size: 12px" href="/dimmer.ssi">Home</a>&nbsp|
 				<div style="font-size: 12px; display: inline-block">System Information</div>&nbsp|
 				<a style="font-size: 12px" href="/setWiFi.ssi?showLinks=1">Setting</a>
 			</div>
@@ -25,22 +26,6 @@
 			<div class="row light_gray-white">
 				<div class="grid gray-white" style="width: 30%">Local SSID</div>
 				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#lcSSID--></div>
-			</div>
-			<div class="row light_gray-white">
-				<div class="grid gray-white" style="width: 30%">SSID</div>
-				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#apSSID--></div>
-			</div>
-			<div class="row light_gray-white">
-				<div class="grid gray-white" style="width: 30%">IP</div>
-				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#ip--></div>
-			</div>
-			<div class="row light_gray-white">
-				<div class="grid gray-white" style="width: 30%">Netmask</div>
-				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#netmask--></div>
-			</div>
-			<div class="row light_gray-white">
-				<div class="grid gray-white" style="width: 30%">Gateway</div>
-				<div class="grid gray-white" style="width: 69%; float: right; text-align: right"><!--#gateway--></div>
 			</div>
 		</div>
 	</body>

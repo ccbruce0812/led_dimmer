@@ -32,8 +32,10 @@ static void setBrightness(unsigned int v) {
 	a=g_colortemp*g_brightness/255;
 	b=(255-g_colortemp)*g_brightness/255;
 	
-	MCPWM_setMark(LED_A_PIN, a);
-	MCPWM_setMark(LED_B_PIN, b);
+	DBG("a=%d, b=%d\n", a, b);
+	
+	MCPWM_setMark(0, a);
+	MCPWM_setMark(1, b);
 }
 
 static void setColortemp(unsigned int v) {
@@ -42,9 +44,11 @@ static void setColortemp(unsigned int v) {
 	g_colortemp=v%256;
 	a=g_colortemp*g_brightness/255;
 	b=(255-g_colortemp)*g_brightness/255;
+
+	DBG("a=%d, b=%d\n", a, b);
 	
-	MCPWM_setMark(LED_A_PIN, a);
-	MCPWM_setMark(LED_B_PIN, b);
+	MCPWM_setMark(0, a);
+	MCPWM_setMark(1, b);
 }
 
 void onWSMsg(struct tcp_pcb *pcb, unsigned char *data, unsigned short len, unsigned char mode) {

@@ -148,7 +148,7 @@
 			<div style="float: right">
 				<div style="font-size: 12px; display: inline-block">Home</div>&nbsp|
 				<a style="font-size: 12px" href="/info.ssi">System Information</a>&nbsp|
-				<a style="font-size: 12px" href="/setWiFi.ssi?showLinks=1">Setting</a>
+				<a style="font-size: 12px" href="/setWiFi.ssi">Setting</a>
 			</div>
 		</div>
 		<div class="main gray-white">

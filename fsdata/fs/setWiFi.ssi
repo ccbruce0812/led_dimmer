@@ -9,14 +9,9 @@
 		<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
 		<script src="script/jquery_3.1.1.min.js"></script>
 		<script src="script/common.js"></script>
-		<script language="javascript">	
-			window.addEventListener("load", function () {
-				if(getParam(window.location.href, "showLinks")=="1")
-					document.getElementById("divLinks").style.display="inherit";
-			});
-			
+		<script language="javascript">
 			function onDS() {
-				$('#action').val(2);
+				$('#action').val(1);
 				$('#frm').submit();
 			}
 		</script>
@@ -24,14 +19,14 @@
 
 	<body>
 		<div class="header black-white">Setting
-			<div style="float: right; display: none" id="divLinks">
-				<a style="font-size: 12px" href="/<!--#page-->">Home</a>&nbsp|
+			<div style="float: right; display: inherit" id="divLinks">
+				<a style="font-size: 12px" href="/dimmer.ssi">Home</a>&nbsp|
 				<a style="font-size: 12px" href="/info.ssi">System Information</a>&nbsp|
 				<div style="font-size: 12px; display: inline-block">Setting</div>
 			</div>
 		</div>
 		<form action="/cmdSvr.cgi" id="frm" method="get">
-			<input type="hidden" id='action' name="action" value="1">
+			<input type="hidden" id='action' name="action" value="0">
 			<div class="main gray-white">
 				<div class="row light_gray-white">
 					<div class="grid gray-white" style="width: 30%">Local SSID</div>
@@ -44,18 +39,6 @@
 					<div class="grid gray-white" style="width: 69%; float: right">
                     	<input class="input" type="password" name="lcPass" maxlength="31" value="">
                     </div>
-				</div>
-				<div class="row light_gray-white">
-					<div class="grid gray-white" style="width: 30%">SSID</div>
-					<div class="grid gray-white" style="width: 69%; float: right">
-                    	<input class="input" type="text" name="apSSID" maxlength="31" value="<!--#apSSID-->">
-                    </div>
-				</div>
-				<div class="row light_gray-white">
-					<div class="grid gray-white" style="width: 30%">Password</div>
-					<div class="grid gray-white" style="width: 69%; float: right">
-                    	<input class="input" type="password" name="apPass" maxlength="63" value="">
-              		</div>
 				</div>
 				<div class="row light_gray-white">
 					<input type="submit" class="button" value="Submit">

@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define DIMMER_FREQ		(1000)
+#define DIMMER_FREQ		(10000)
 #define DIMMER_RES		(8)
 
 #ifdef __cplusplus

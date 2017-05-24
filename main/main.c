@@ -85,7 +85,7 @@ static void initWiFi(void) {
 	struct ip_info ipAddr;
 
 	sdk_wifi_set_phy_mode(PHY_MODE_11N);
-    sdk_wifi_set_opmode(STATIONAP_MODE);
+    sdk_wifi_set_opmode(SOFTAP_MODE);
 
 	memset(&apCfg, 0, sizeof(apCfg));
 	sdk_wifi_softap_get_config(&apCfg);
@@ -123,15 +123,13 @@ static void initWiFi(void) {
 	memset(&ipAddr, 0, sizeof(ipAddr));
 	IP4_ADDR(&ipAddr.ip, 192, 168, 254, 100);
 	dhcpserver_start(&ipAddr.ip, 10);
-
-    sdk_wifi_station_connect();
 }
 
 void user_init(void) {
 	initFS();
     uart_set_baud(0, 115200);
 	DBG("%s\n", sysStr());
-	initDimmer();
+	//initDimmer();
 	initWiFi();
 
 	g_msgQ=xQueueCreate(8, sizeof(Msg));
