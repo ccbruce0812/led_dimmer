@@ -17,15 +17,15 @@
 #include <assert.h>
 
 #include "../common/toolhelp.h"
+#include "../common/pindef.h"
 
-#include "statab.h"
 #include "wsmsg.h"
 #include "ws.h"
 
 unsigned int g_brightness=0;
 unsigned int g_colortemp=0;
 
-static setBrightness(unsigned int v) {
+static void setBrightness(unsigned int v) {
 	unsigned int a, b;
 	
 	g_brightness=v%256;
@@ -36,7 +36,7 @@ static setBrightness(unsigned int v) {
 	MCPWM_setMark(LED_B_PIN, b);
 }
 
-static setColortemp(unsigned int v) {
+static void setColortemp(unsigned int v) {
 	unsigned int a, b;
 	
 	g_colortemp=v%256;
@@ -95,7 +95,7 @@ void onWSMsg(struct tcp_pcb *pcb, unsigned char *data, unsigned short len, unsig
 			case MSG_SET_COLORTEMP: {
 				DBG("msgRecv=%d, arg=%s\n", msgRecv, arg[0]);
 				
-				setColorTemp((unsigned int)atoi(arg[0]));
+				setColortemp((unsigned int)atoi(arg[0]));
 				
 				bufSend=makeRawMsg(MSG_SET_COLORTEMP_REPLY, "0");
 
@@ -104,10 +104,10 @@ void onWSMsg(struct tcp_pcb *pcb, unsigned char *data, unsigned short len, unsig
 				break;
 			}
 			
-			case MSG_KEPALIVE: {
+			case MSG_KEEPALIVE: {
 				DBG("msgRecv=%d\n", msgRecv);
 				
-				bufSend=makeRawMsg(MSG_KEPALIVE_REPLY, "0");
+				bufSend=makeRawMsg(MSG_KEEPALIVE_REPLY, "0");
 
 				DBG("bufSend=%s\n", bufSend);
 				websocket_write(pcb, (unsigned char *)bufSend, strlen(bufSend), WS_TEXT_MODE);

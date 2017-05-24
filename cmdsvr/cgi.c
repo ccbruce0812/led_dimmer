@@ -9,6 +9,8 @@
 #include <espressif/esp_common.h>
 #include <espressif/esp_system.h>
 
+#include <esp_spiffs.h>
+
 #include <lwip/inet.h>
 
 #include <mcpwm/mcpwm.h>
@@ -56,7 +58,13 @@ static char *onCGI(int idx, int count, char *param[], char *value[]) {
 			case 0: {
 				unsigned char stat=sdk_wifi_station_get_connect_status();
 			
-				ret=(stat==STATION_GOT_IP)?"/wifiReady.ssi":"/setWiFi.ssi";
+				if(stat==STATION_GOT_IP) {
+					ret="/wifiReady.ssi";
+					DBG("Ready. ret=%s\n", ret);
+				} else {
+					ret="/setWiFi.ssi";
+					DBG("Not ready. ret=%s\n", ret);
+				}
 				goto end;
 			}
 
@@ -64,7 +72,7 @@ static char *onCGI(int idx, int count, char *param[], char *value[]) {
 				InitParam init;
 				struct sdk_softap_config apCfg;
 				struct sdk_station_config staCfg;
-				int fout=-1;
+				spiffs_file fout;
 				
 				memset(&init, 0, sizeof(init));
 				memset(&apCfg, 0, sizeof(apCfg));
@@ -80,14 +88,21 @@ static char *onCGI(int idx, int count, char *param[], char *value[]) {
 				}
 				sdk_wifi_softap_set_config(&apCfg);
 
-				if((fout=open("initParam", O_WRONLY|O_CREAT, 0))>=0) {
-					if(init.fieldMask&0x1)
-						DBG("New local SSID=%s.\n", init.locSSID);
-					if(init.fieldMask&0x2)
-						DBG("New local password=%s.\n", init.locPassword);
-					write(fout, &init, sizeof(init));
-					close(fout);
-				}
+				fout=SPIFFS_open(&fs, "initParam", SPIFFS_O_WRONLY|SPIFFS_O_CREAT, 0);
+				if(fout>=0) {
+					int res;
+					
+					res=SPIFFS_write(&fs, fout, &init, sizeof(init));
+					if(res==sizeof(init)) {
+						if(init.fieldMask&0x1)
+							DBG("New local SSID=%s.\n", init.locSSID);
+						if(init.fieldMask&0x2)
+							DBG("New local password=%s.\n", init.locPassword);
+					} else
+						DBG("Failed to write initParam. (res=%d)\n", res);
+					SPIFFS_close(&fs, fout);
+				} else
+					DBG("Failed to open initParam. (res=%d)\n", fout);
 
 				memset(&staCfg, 0, sizeof(staCfg));
 				sdk_wifi_station_get_config(&staCfg);

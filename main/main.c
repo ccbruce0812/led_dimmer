@@ -31,6 +31,7 @@
 #include "../common/toolhelp.h"
 #include "../common/msgstat.h"
 #include "../common/pindef.h"
+#include "../common/dimmer.h"
 #include "../cmdsvr/cmdsvr.h"
 
 QueueHandle_t g_msgQ=NULL;
@@ -79,7 +80,7 @@ static void initDimmer(void) {
 }
 
 static void initWiFi(void) {
-	int fin=open("initParam", O_RDONLY);
+	spiffs_file fin=SPIFFS_open(&fs, "initParam", SPIFFS_O_RDONLY, 0);
 	struct sdk_softap_config apCfg;
 	struct ip_info ipAddr;
 
@@ -89,9 +90,11 @@ static void initWiFi(void) {
 	memset(&apCfg, 0, sizeof(apCfg));
 	sdk_wifi_softap_get_config(&apCfg);
 	if(fin>=0) {
+		int res;
 		InitParam init;
-		
-		if(read(fin, &init, sizeof(init))==sizeof(init)) {
+
+		res=SPIFFS_read(&fs, fin, &init, sizeof(init));
+		if(res==sizeof(init)) {	
 			if(init.fieldMask&0x1) {
 				memcpy(apCfg.ssid, init.locSSID, sizeof(init.locSSID));
 				DBG("New local SSID=%s.\n", apCfg.ssid);
@@ -102,13 +105,14 @@ static void initWiFi(void) {
 				DBG("New local password=%s.\n", apCfg.password);
 			}
 			apCfg.max_connection=8;
-		}
+		} else
+			DBG("Failed to read initParam. (res=%d)\n", res);
 		
-		close(fin);
+		SPIFFS_close(&fs, fin);
 		unlink("initParam");
 		sdk_wifi_softap_set_config(&apCfg);
 	} else
-		DBG("No initParam.\n");
+		DBG("Failed to open initParam. (res=%d)\n", fin);
 
 	memset(&ipAddr, 0, sizeof(ipAddr));
 	IP4_ADDR(&ipAddr.ip, 192, 168, 254, 254);

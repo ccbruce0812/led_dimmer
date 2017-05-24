@@ -1,5 +1,5 @@
 PROGRAM					= led_dimmer
-EXTRA_COMPONENTS		= extras/httpd extras/mbedtls extras/dhcpserver extras/spiffs
+EXTRA_COMPONENTS		= extras/httpd extras/mbedtls extras/dhcpserver extras/spiffs extras/mcpwm
 PROGRAM_SRC_DIR			= . ./common ./main ./cmdsvr
 EXTRA_CFLAGS			= -DLWIP_HTTPD_CGI=1 -DLWIP_HTTPD_SSI=1 -DLWIP_HTTPD_SSI_INCLUDE_TAG=0 -I./fsdata
 EXTRA_CFLAGS			+=-DLWIP_IGMP -DLWIP_RAND=rand
