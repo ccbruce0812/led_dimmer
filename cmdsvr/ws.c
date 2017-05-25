@@ -18,19 +18,20 @@
 
 #include "../common/toolhelp.h"
 #include "../common/pindef.h"
+#include "../common/dimmer.h"
 
 #include "wsmsg.h"
 #include "ws.h"
 
-unsigned int g_brightness=0;
-unsigned int g_colortemp=0;
+unsigned int g_brightness=DIMMER_DEF_BRIGHTNESS;
+unsigned int g_colortemp=DIMMER_DEF_COLORTEMP;
 
-static void setBrightness(unsigned int v) {
+static void updatePWM(void) {
+	unsigned int max=1<<DIMMER_RES;
 	unsigned int a, b;
 	
-	g_brightness=v%256;
-	a=g_colortemp*g_brightness/255;
-	b=(255-g_colortemp)*g_brightness/255;
+	a=g_colortemp*g_brightness/(max-1);
+	b=(max-1-g_colortemp)*g_brightness/(max-1);
 	
 	DBG("a=%d, b=%d\n", a, b);
 	
@@ -38,17 +39,18 @@ static void setBrightness(unsigned int v) {
 	MCPWM_setMark(1, b);
 }
 
-static void setColortemp(unsigned int v) {
-	unsigned int a, b;
+static void setBrightness(unsigned int v) {
+	unsigned int max=1<<DIMMER_RES;
 	
-	g_colortemp=v%256;
-	a=g_colortemp*g_brightness/255;
-	b=(255-g_colortemp)*g_brightness/255;
+	g_brightness=v%max;
+	updatePWM();
+}
 
-	DBG("a=%d, b=%d\n", a, b);
+static void setColortemp(unsigned int v) {
+	unsigned int max=1<<DIMMER_RES;
 	
-	MCPWM_setMark(0, a);
-	MCPWM_setMark(1, b);
+	g_colortemp=v%max;
+	updatePWM();
 }
 
 void onWSMsg(struct tcp_pcb *pcb, unsigned char *data, unsigned short len, unsigned char mode) {

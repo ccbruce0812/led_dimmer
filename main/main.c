@@ -73,7 +73,7 @@ static void initFS(void) {
 static void initDimmer(void) {
 	unsigned char pins[]={LED_A_PIN, LED_B_PIN};
 	
-	if(MCPWM_init(DIMMER_FREQ, DIMMER_RES, pins, sizeof(pins)/sizeof(pins[0]))<0) {
+	if(MCPWM_init(DIMMER_FREQ, TIMER_CLKDIV_16, DIMMER_RES, pins, sizeof(pins)/sizeof(pins[0]))<0) {
 		DBG("Failed to initialize dimmer.\n");
 		assert(false);
 	}
@@ -129,7 +129,7 @@ void user_init(void) {
 	initFS();
     uart_set_baud(0, 115200);
 	DBG("%s\n", sysStr());
-	//initDimmer();
+	initDimmer();
 	initWiFi();
 
 	g_msgQ=xQueueCreate(8, sizeof(Msg));

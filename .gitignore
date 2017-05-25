@@ -11,3 +11,4 @@ local.mk
 local.h
 screenlog.*
 *.swp
+fsdata/fsdata.c
