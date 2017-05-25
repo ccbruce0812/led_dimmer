@@ -10,6 +10,11 @@
 		<script src="script/jquery_3.1.1.min.js"></script>
 		<script src="script/common.js"></script>
 		<script language="javascript">
+			function onRest() {
+				$('#action').val(2);
+				$('#frm').submit();
+			}
+			
 			function onDS() {
 				$('#action').val(1);
 				$('#frm').submit();
@@ -42,6 +47,11 @@
 				</div>
 				<div class="row light_gray-white">
 					<input type="submit" class="button" value="Submit">
+				</div>
+			</div>
+			<div class="main gray-white">
+				<div class="row light_gray-white">
+					<input type="button" class="button" value="Restart" onclick='onRest()'>
 				</div>
 			</div>
 			<div class="main gray-white">

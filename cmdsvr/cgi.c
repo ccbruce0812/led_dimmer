@@ -38,6 +38,10 @@ static void onDeepSleep(void *param) {
 	sdk_system_deep_sleep(0);
 }
 
+static void onRestart(void *param) {
+	sdk_system_restart();
+}
+
 static const char *readValue(int count, char *param[], char *value[], const char *key) {
 	int i=0;
 	
@@ -99,6 +103,14 @@ static char *onCGI(int idx, int count, char *param[], char *value[]) {
 				sdk_ets_timer_arm(&g_timer, 5000, false);
 
 				ret="/shutdown.html";
+				break;
+			}
+			
+			case 2: {
+				sdk_ets_timer_setfn(&g_timer, onRestart, NULL);
+				sdk_ets_timer_arm(&g_timer, 5000, false);
+
+				ret="/restart.html";
 				break;
 			}
 			
