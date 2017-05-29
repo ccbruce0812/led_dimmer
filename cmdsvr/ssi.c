@@ -17,12 +17,17 @@
 #include <assert.h>
 
 #include "../common/toolhelp.h"
+#include "../common/dimmer.h"
 
 #include "ssi.h"
 
 const char *g_ssiTab[]={
 	"version",
-	"lcSSID"
+	"lcSSID",
+	"maxBri",
+	"maxCol",
+	"defBri",
+	"defCol"
 };
 
 int onSSI(int idx, char *ins, int len) {
@@ -39,6 +44,22 @@ int onSSI(int idx, char *ins, int len) {
 			snprintf(ins, len, "%s", cfg.ssid);
 			break;
 		}
+		
+		case 2:
+			snprintf(ins, len, "%d", (1<<DIMMER_RES)-1);
+			break;
+		
+		case 3:
+			snprintf(ins, len, "%d", (1<<DIMMER_RES)-1);
+			break;
+			
+		case 4:
+			snprintf(ins, len, "%d", DIMMER_DEF_BRIGHTNESS);
+			break;
+		
+		case 5:
+			snprintf(ins, len, "%d", DIMMER_DEF_COLORTEMP);
+			break;
 
         default:
             snprintf(ins, len, "N/A");

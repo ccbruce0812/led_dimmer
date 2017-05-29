@@ -154,16 +154,16 @@
 		<div class="main gray-white">
 			<div class="row light_gray-white">
 				<div class="grid gray-white" style="width: 30%">Brightness</div>
-				<div class="grid gray-white" style="width: 69%; float: right; text-align: right" id="txtBri">0</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right" id="txtBri">7</div>
                 <div class="grid gray-white" style="width: 100%; clear: left; margin-top: 5px">
-                	<input class="slider" style="width: 80%" id="inpBri" type="range" min="0" max="255" value="0" onchange="onBri()">
+                	<input class="slider" style="width: 80%" id="inpBri" type="range" min="0" max="<!--#maxBri-->" value="<!--#defBri-->" onchange="onBri()">
                 </div>
 			</div>
 			<div class="row light_gray-white">
-				<div class="grid gray-white" style="width: 30%">Color Temperature</div>
-				<div class="grid gray-white" style="width: 69%; float: right; text-align: right" id="txtCol">127</div>
+				<div class="grid gray-white" style="width: 30%">Color Temp.</div>
+				<div class="grid gray-white" style="width: 69%; float: right; text-align: right" id="txtCol">7</div>
                 <div class="grid gray-white" style="width: 100%; clear: left; margin-top: 5px">
-                	<input class="slider" style="width: 80%" id="inpCol" type="range" min="0" max="255" value="127" onchange="onCol()">
+                	<input class="slider" style="width: 80%" id="inpCol" type="range" min="0" max="<!--#maxCol-->" value="<!--#defCol-->" onchange="onCol()">
                 </div>
 			</div>
 		</div>

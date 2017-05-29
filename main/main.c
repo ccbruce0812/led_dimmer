@@ -77,6 +77,9 @@ static void initDimmer(void) {
 		DBG("Failed to initialize dimmer.\n");
 		assert(false);
 	}
+	
+	MCPWM_setMark(0, DIMMER_DEF_BRIGHTNESS);
+	MCPWM_setMark(1, DIMMER_DEF_COLORTEMP);
 }
 
 static void initWiFi(void) {
