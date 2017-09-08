@@ -44,13 +44,13 @@ int onSSI(int idx, char *ins, int len) {
 			snprintf(ins, len, "%s", cfg.ssid);
 			break;
 		}
-		
+			
 		case 2:
-			snprintf(ins, len, "%d", (1<<DIMMER_RES)-1);
+			snprintf(ins, len, "%d", DIMMER_MAX_BRIGHTNESS);
 			break;
 		
 		case 3:
-			snprintf(ins, len, "%d", (1<<DIMMER_RES)-1);
+			snprintf(ins, len, "%d", DIMMER_MAX_COLORTEMP);
 			break;
 			
 		case 4:

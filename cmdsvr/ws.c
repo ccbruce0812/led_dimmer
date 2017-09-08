@@ -27,29 +27,39 @@ unsigned int g_brightness=DIMMER_DEF_BRIGHTNESS;
 unsigned int g_colortemp=DIMMER_DEF_COLORTEMP;
 
 static void updatePWM(void) {
-	unsigned int max=1<<DIMMER_RES;
-	unsigned int a, b;
+	unsigned int max=(1<<DIMMER_RES)-1, a=0, b=0;
+	float ar, br;
 	
-	a=g_colortemp*g_brightness/(max-1);
-	b=(max-1-g_colortemp)*g_brightness/(max-1);
+	DBG("b=%d, c=%d\n", g_brightness, g_colortemp);
 	
-	DBG("a=%d, b=%d\n", a, b);
+	if(!g_brightness)
+		goto set;
 	
+	colortempRatio(g_colortemp, &ar, &br);
+	ar*=(float)g_brightness/DIMMER_MAX_BRIGHTNESS;
+	br*=(float)g_brightness/DIMMER_MAX_BRIGHTNESS;
+	a=(unsigned int)((float)DIMMER_CUTOFF+ar*(max-DIMMER_CUTOFF));
+	b=(unsigned int)((float)DIMMER_CUTOFF+br*(max-DIMMER_CUTOFF));
+	DBG("ar=%f, br=%f, a=%d, b=%d\n", ar, br, a, b);
+	
+set:
 	MCPWM_setMark(0, a);
 	MCPWM_setMark(1, b);
 }
 
 static void setBrightness(unsigned int v) {
-	unsigned int max=1<<DIMMER_RES;
-	
-	g_brightness=v%max;
+	if(v>DIMMER_MAX_BRIGHTNESS)
+		v=DIMMER_MAX_BRIGHTNESS;
+
+	g_brightness=v;
 	updatePWM();
 }
 
 static void setColortemp(unsigned int v) {
-	unsigned int max=1<<DIMMER_RES;
+	if(v>DIMMER_MAX_COLORTEMP)
+		v=DIMMER_MAX_COLORTEMP;
 	
-	g_colortemp=v%max;
+	g_colortemp=v;
 	updatePWM();
 }
 
@@ -77,13 +87,13 @@ void onWSMsg(struct tcp_pcb *pcb, unsigned char *data, unsigned short len, unsig
 			}
 
 			case MSG_SET_BRIGHTNESS: {
-				DBG("msgRecv=%d, arg=%s\n", msgRecv, arg[0]);
+				//DBG("msgRecv=%d, arg=%s\n", msgRecv, arg[0]);
 				
 				setBrightness((unsigned int)atoi(arg[0]));
 				
 				bufSend=makeRawMsg(MSG_SET_BRIGHTNESS_REPLY, "0");
 
-				DBG("bufSend=%s\n", bufSend);
+				//DBG("bufSend=%s\n", bufSend);
 				websocket_write(pcb, (unsigned char *)bufSend, strlen(bufSend), WS_TEXT_MODE);
 				break;
 			}
@@ -99,13 +109,13 @@ void onWSMsg(struct tcp_pcb *pcb, unsigned char *data, unsigned short len, unsig
 			}
 
 			case MSG_SET_COLORTEMP: {
-				DBG("msgRecv=%d, arg=%s\n", msgRecv, arg[0]);
+				//DBG("msgRecv=%d, arg=%s\n", msgRecv, arg[0]);
 				
 				setColortemp((unsigned int)atoi(arg[0]));
 				
 				bufSend=makeRawMsg(MSG_SET_COLORTEMP_REPLY, "0");
 
-				DBG("bufSend=%s\n", bufSend);
+				//DBG("bufSend=%s\n", bufSend);
 				websocket_write(pcb, (unsigned char *)bufSend, strlen(bufSend), WS_TEXT_MODE);
 				break;
 			}

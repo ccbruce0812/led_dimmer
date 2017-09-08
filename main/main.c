@@ -50,13 +50,35 @@ static void msgTask(void *param) {
 		DBG("Failed to get net interface.\n");
 	
 	CMDSVR_init();
+	gpio_write(LED_PIN, true);
 	
 	while(1) {
 		xQueueReceive(g_msgQ, &msgRecv, portMAX_DELAY);
 		
 		switch(msgRecv.id) {
+			case MSG_KEY_PRESSED:
+				break;
+		
 			default:
 				;
+		}
+	}
+}
+
+static void onGPIO(unsigned char num) {
+	static unsigned int prev=0;
+	unsigned int now=0;
+    
+	if(num==KEY_PIN) {
+		now=xTaskGetTickCount();
+		if(now-prev>=MSEC2TICKS(50)) {
+			Msg msg={
+				.id=MSG_KEY_PRESSED,
+				.param=NULL
+			};
+			
+			prev=now;
+			xQueueSendFromISR(g_msgQ, &msg, 0);
 		}
 	}
 }
@@ -70,16 +92,41 @@ static void initFS(void) {
     }
 }
 
+static void initGPIO(void) {
+	gpio_enable(LED_PIN, GPIO_OUTPUT);
+	gpio_write(LED_PIN, false);
+
+	gpio_enable(KEY_PIN, GPIO_INPUT);
+	gpio_set_pullup(KEY_PIN, true, false);
+	GPIO.STATUS_CLEAR=0x0000ffff;
+	gpio_set_interrupt(KEY_PIN, GPIO_INTTYPE_EDGE_NEG, onGPIO);
+}
+
 static void initDimmer(void) {
 	unsigned char pins[]={LED_A_PIN, LED_B_PIN};
+	unsigned int max=(1<<DIMMER_RES)-1, a=0, b=0;
+	float ar, br;
 	
 	if(MCPWM_init(DIMMER_FREQ, TIMER_CLKDIV_16, DIMMER_RES, pins, sizeof(pins)/sizeof(pins[0]))<0) {
 		DBG("Failed to initialize dimmer.\n");
 		assert(false);
 	}
 	
-	MCPWM_setMark(0, DIMMER_DEF_BRIGHTNESS);
-	MCPWM_setMark(1, DIMMER_DEF_COLORTEMP);
+	DBG("b=%d, c=%d\n", DIMMER_DEF_BRIGHTNESS, DIMMER_DEF_COLORTEMP);
+	
+	if(!DIMMER_DEF_BRIGHTNESS)
+		goto set;
+	
+	colortempRatio(DIMMER_DEF_COLORTEMP, &ar, &br);
+	ar*=(float)DIMMER_DEF_BRIGHTNESS/DIMMER_MAX_BRIGHTNESS;
+	br*=(float)DIMMER_DEF_BRIGHTNESS/DIMMER_MAX_BRIGHTNESS;
+	a=(unsigned int)((float)DIMMER_CUTOFF+ar*(max-DIMMER_CUTOFF));
+	b=(unsigned int)((float)DIMMER_CUTOFF+br*(max-DIMMER_CUTOFF));
+	DBG("ar=%f, br=%f, a=%d, b=%d\n", ar, br, a, b);
+	
+set:
+	MCPWM_setMark(0, a);
+	MCPWM_setMark(1, b);
 }
 
 static void initWiFi(void) {
@@ -132,6 +179,7 @@ void user_init(void) {
 	initFS();
     uart_set_baud(0, 115200);
 	DBG("%s\n", sysStr());
+	initGPIO();
 	initDimmer();
 	initWiFi();
 

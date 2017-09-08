@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #define MSG_MIN					(0)
+#define MSG_KEY_PRESSED			(MSG_MIN+1)
 
 #define STAT_MIN				(0)
 #define STAT_IDLE				(STAT_MIN+1)
