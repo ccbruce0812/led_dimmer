@@ -12,8 +12,8 @@
 #include <esp_spiffs.h>
 
 #include <lwip/netif.h>
-#include <ipv4/lwip/inet.h>
-#include <ipv4/lwip/igmp.h>
+#include <lwip/inet.h>
+#include <lwip/igmp.h>
 #include <lwip/sockets.h>
 
 #include <mcpwm/mcpwm.h>
@@ -24,6 +24,9 @@
 #include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
+#undef O_RDONLY
+#undef O_WRONLY
+#undef O_RDWR
 #undef O_NONBLOCK
 #include <fcntl.h>
 
