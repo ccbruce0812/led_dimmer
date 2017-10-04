@@ -7,6 +7,7 @@
 
 #include <etstimer.h>
 #include <espressif/esp_common.h>
+#include <espressif/osapi.h>
 
 #include <dhcpserver.h>
 #include <esp_spiffs.h>
@@ -14,6 +15,9 @@
 #include <lwip/netif.h>
 #include <lwip/inet.h>
 #include <lwip/igmp.h>
+#include <lwip/raw.h>
+#include <lwip/ip4_addr.h>
+#include <lwip/ip_addr.h>
 #include <lwip/sockets.h>
 
 #include <mcpwm/mcpwm.h>
@@ -40,9 +44,28 @@
 QueueHandle_t g_msgQ=NULL;
 unsigned char g_curStat=STAT_IDLE;
 
+static void onTimer(void *arg) {
+	Msg msg={
+		.id=MSG_CHECK_LEASES
+	};
+	
+	xQueueSend(g_msgQ, &msg, portMAX_DELAY);
+}
+
+static void onCheckLeases(void) {
+	dhcpserver_lease_t lease;
+	
+	if(dhcpserver_get_leases(&lease, 1)) {
+		DBG("hwaddr=%02x:%02x:%02x:%02x:%02x:%02x, ipaddr=%s\n",
+		   lease.hwaddr[0], lease.hwaddr[1], lease.hwaddr[2], lease.hwaddr[3], lease.hwaddr[4], lease.hwaddr[5],
+		   ip4addr_ntoa(&lease.ipaddr));
+	}
+}
+
 static void msgTask(void *param) {
 	struct netif *nif=NULL;
 	Msg msgRecv={0};
+	ETSTimer timer={0};
 	
 	if((nif=sdk_system_get_netif(0))) {
 		nif->flags|=NETIF_FLAG_IGMP|NETIF_FLAG_BROADCAST;
@@ -53,6 +76,8 @@ static void msgTask(void *param) {
 		DBG("Failed to get net interface.\n");
 	
 	CMDSVR_init();
+	sdk_os_timer_setfn(&timer, onTimer, NULL);
+	sdk_os_timer_arm(&timer, 5000, false);
 	gpio_write(LED_PIN, true);
 	
 	while(1) {
@@ -60,6 +85,11 @@ static void msgTask(void *param) {
 		
 		switch(msgRecv.id) {
 			case MSG_KEY_PRESSED:
+				break;
+				
+			case MSG_CHECK_LEASES:
+				onCheckLeases();
+				sdk_os_timer_arm(&timer, 5000, false);
 				break;
 		
 			default:
