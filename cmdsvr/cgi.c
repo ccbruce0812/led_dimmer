@@ -21,7 +21,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../common/private_ssid_config.h"
 #include "../common/toolhelp.h"
 
 #include "cgi.h"

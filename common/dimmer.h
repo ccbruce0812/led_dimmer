@@ -15,7 +15,7 @@ extern "C" {
 #define DIMMER_DEF_BRIGHTNESS	(50)
 #define DIMMER_DEF_COLORTEMP	(4)
 
-inline void colortempRatio(unsigned int v, float *a, float *b) {
+static inline void colortempRatio(unsigned int v, float *a, float *b) {
 	if(v>DIMMER_MAX_COLORTEMP)
 		v=DIMMER_MAX_COLORTEMP;
 	

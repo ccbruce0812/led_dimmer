@@ -16,8 +16,6 @@
 #include <lwip/inet.h>
 #include <lwip/igmp.h>
 #include <lwip/raw.h>
-#include <lwip/ip4_addr.h>
-#include <lwip/ip_addr.h>
 #include <lwip/sockets.h>
 
 #include <mcpwm/mcpwm.h>
@@ -34,15 +32,18 @@
 #undef O_NONBLOCK
 #include <fcntl.h>
 
-#include "../common/private_ssid_config.h"
 #include "../common/toolhelp.h"
+#include "../common/net.h"
 #include "../common/msgstat.h"
 #include "../common/pindef.h"
 #include "../common/dimmer.h"
 #include "../cmdsvr/cmdsvr.h"
 
-QueueHandle_t g_msgQ=NULL;
-unsigned char g_curStat=STAT_IDLE;
+static QueueHandle_t g_msgQ=NULL;
+static struct raw_pcb *g_pingPCB=NULL;
+static PingRec g_pingRecs[NET_MAX_LEASE_COUNT]={0};
+static unsigned int g_pingRecsCount=0;
+static unsigned short g_seqNum=0;
 
 static void onTimer(void *arg) {
 	Msg msg={
@@ -50,16 +51,6 @@ static void onTimer(void *arg) {
 	};
 	
 	xQueueSend(g_msgQ, &msg, portMAX_DELAY);
-}
-
-static void onCheckLeases(void) {
-	dhcpserver_lease_t lease;
-	
-	if(dhcpserver_get_leases(&lease, 1)) {
-		DBG("hwaddr=%02x:%02x:%02x:%02x:%02x:%02x, ipaddr=%s\n",
-		   lease.hwaddr[0], lease.hwaddr[1], lease.hwaddr[2], lease.hwaddr[3], lease.hwaddr[4], lease.hwaddr[5],
-		   ip4addr_ntoa(&lease.ipaddr));
-	}
 }
 
 static void msgTask(void *param) {
@@ -76,9 +67,10 @@ static void msgTask(void *param) {
 		DBG("Failed to get net interface.\n");
 	
 	CMDSVR_init();
+	gpio_write(LED_PIN, true);
+	
 	sdk_os_timer_setfn(&timer, onTimer, NULL);
 	sdk_os_timer_arm(&timer, 5000, false);
-	gpio_write(LED_PIN, true);
 	
 	while(1) {
 		xQueueReceive(g_msgQ, &msgRecv, portMAX_DELAY);
@@ -87,15 +79,69 @@ static void msgTask(void *param) {
 			case MSG_KEY_PRESSED:
 				break;
 				
-			case MSG_CHECK_LEASES:
-				onCheckLeases();
+			case MSG_CHECK_LEASES: {
+				dhcpserver_lease_t leases[NET_MAX_LEASE_COUNT]={0};
+				int i;
+				
+				for(i=0;i<g_pingRecsCount;i++) {
+					if(g_pingRecs[i].isAlive)
+						break;
+				}
+				
+				if(i==g_pingRecsCount) {
+					DBG("No alive client.\n");
+				} else
+					DBG("Alive client found.\n");
+				
+				if((g_pingRecsCount=dhcpserver_get_leases(leases, NET_MAX_LEASE_COUNT))) {
+					/*
+					DBG("hwaddr=%02x:%02x:%02x:%02x:%02x:%02x, ipaddr=%s\n",
+					   lease.hwaddr[0], lease.hwaddr[1], lease.hwaddr[2], lease.hwaddr[3], lease.hwaddr[4], lease.hwaddr[5],
+					   ip4addr_ntoa(&lease.ipaddr));
+					*/
+					
+					for(i=0;i<g_pingRecsCount;i++) {
+						memcpy(&g_pingRecs[i].lease, &leases[i], sizeof(dhcpserver_lease_t));
+						g_pingRecs[i].isAlive=false;
+						sendEcho(g_pingPCB, &g_pingRecs[i].lease.ipaddr, NET_PING_DATA_SIZE, NET_PING_ID, ++g_seqNum);
+					}
+				}
+				
 				sdk_os_timer_arm(&timer, 5000, false);
 				break;
+			}
 		
 			default:
 				;
 		}
 	}
+}
+
+static u8_t onRecv(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *addr) {
+	if(!p || !addr) {
+		DBG("Bad argument.\n");
+		assert(0);
+	}
+
+	if(!pbuf_header(p, -PBUF_IP_HLEN)) {
+		struct icmp_echo_hdr *iecho=(struct icmp_echo_hdr *)p->payload;
+
+		if(iecho->id==NET_PING_ID &&
+			iecho->seqno==htons(g_seqNum)) {
+			int i;
+			
+			DBG("'%s' is alive.\n", ipaddr_ntoa(addr));
+			for(i=0;i<g_pingRecsCount;i++) {
+				if(!memcmp(&g_pingRecs[i].lease.ipaddr, addr, sizeof(ip_addr_t)))
+					g_pingRecs[i].isAlive=true;
+			}
+			
+			pbuf_free(p);
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 static void onGPIO(unsigned char num) {
@@ -198,14 +244,18 @@ static void initWiFi(void) {
 		DBG("Failed to open initParam. (res=%d)\n", fin);
 
 	memset(&ipAddr, 0, sizeof(ipAddr));
-	IP4_ADDR(&ipAddr.ip, 192, 168, 254, 254);
-	IP4_ADDR(&ipAddr.gw, 192, 168, 254, 254);
-	IP4_ADDR(&ipAddr.netmask, 255, 255, 255, 0);
+	NET_DEF_ADDR(ipAddr.ip);
+	NET_DEF_GW(ipAddr.gw);
+	NET_DEF_MASK(ipAddr.netmask);
 	sdk_wifi_set_ip_info(SOFTAP_IF, &ipAddr);
 	
 	memset(&ipAddr, 0, sizeof(ipAddr));
-	IP4_ADDR(&ipAddr.ip, 192, 168, 254, 100);
-	dhcpserver_start(&ipAddr.ip, 10);
+	NET_1ST_ADDR(ipAddr.ip);
+	dhcpserver_start(&ipAddr.ip, NET_MAX_LEASE_COUNT);
+	
+	g_pingPCB=raw_new(IP_PROTO_ICMP);
+	raw_recv(g_pingPCB, onRecv, NULL);
+	raw_bind(g_pingPCB, IP_ADDR_ANY);
 }
 
 void user_init(void) {

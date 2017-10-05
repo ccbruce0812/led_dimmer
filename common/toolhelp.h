@@ -14,7 +14,8 @@ extern "C" {
 #include <stdarg.h>
 #include <stdio.h>
 
-#define MSEC2TICKS(n) (n/portTICK_PERIOD_MS)
+#define MSEC2TICKS(n)	(n/portTICK_PERIOD_MS)
+#define COUNTOF(a)		(sizeof(a)/sizeof(a[0]))
 
 typedef struct {
 	unsigned long fieldMask;
