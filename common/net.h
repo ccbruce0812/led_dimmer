@@ -14,11 +14,11 @@ extern "C" {
 #include <lwip/ip4_addr.h>
 #include <lwip/ip_addr.h>
 
-#define NET_PING_ID			((u16_t)0xafaf)
+#define NET_PING_ID			((u16_t)0x0100)
 #define NET_PING_DATA_SIZE	(32)
 #define NET_MAX_LEASE_COUNT	(10)
-#define NET_DEF_ADDR(a) 	IP4_ADDR(&a, 192, 168, 254, 254)
-#define NET_DEF_GW(a)		IP4_ADDR(&a, 192, 168, 254, 254)
+#define NET_DEF_ADDR(a) 	IP4_ADDR(&a, 192, 168, 254, 1)
+#define NET_DEF_GW(a)		IP4_ADDR(&a, 192, 168, 254, 2)
 #define NET_DEF_MASK(a)		IP4_ADDR(&a, 255, 255, 255, 0);
 #define NET_1ST_ADDR(a)		IP4_ADDR(&a, 192, 168, 254, 100)
 
@@ -35,7 +35,7 @@ static inline void prepareEcho(struct icmp_echo_hdr *iecho, u16_t len, u16_t id,
 	ICMPH_CODE_SET(iecho, 0);
 	iecho->chksum=0;
 	iecho->id=id;
-	iecho->seqno=seqNum;
+	iecho->seqno=htons(seqNum);
 	for(i=0;i<len-sizeof(struct icmp_echo_hdr);tail[i]=('a'+i), i++);
 	iecho->chksum=inet_chksum(iecho, len);
 }

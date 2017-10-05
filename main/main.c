@@ -122,7 +122,7 @@ static u8_t onRecv(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip_addr
 		DBG("Bad argument.\n");
 		assert(0);
 	}
-
+	
 	if(!pbuf_header(p, -PBUF_IP_HLEN)) {
 		struct icmp_echo_hdr *iecho=(struct icmp_echo_hdr *)p->payload;
 
